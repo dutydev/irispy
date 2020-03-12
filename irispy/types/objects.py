@@ -97,7 +97,7 @@ class BindChatObject(BaseModel):
 
 
 class Ping(BaseObject):
-    method: Method.PING
+    method: str
     object: Any
 
 
