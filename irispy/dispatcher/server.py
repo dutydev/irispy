@@ -1,9 +1,6 @@
 from aiohttp import web
-
-import logging
-
-
-logger = logging.getLogger(__name__)
+from ..utils import logger
+from ..utils import errors
 
 
 class IrisHandler(web.View):
@@ -27,20 +24,23 @@ class IrisHandler(web.View):
         event = await self.request.json()
         method = event.get("method")
         if not method:
-            raise web.HTTPForbidden
+            return web.json_response(data=errors[1])
 
         secret = event.get("secret")
         user_id = event.get("user_id")
 
         if secret != self.request.app["secret"]:
-            raise web.HTTPForbidden
+            logger.warning(f"Got invalid secret string: {secret}")
+            return web.json_response(data=errors[3])
 
         if user_id != self.request.app["user_id"]:
-            raise web.HTTPForbidden
+            logger.warning(f"Got invalid user_id: {user_id}")
+            return web.json_response(data=errors[3])
 
         await self.request.app["dp"].process_events([event])
         if method in self._methods:
             return web.Response(text="ok")
+        return web.json_response(data=errors[2])
 
 
 def get_app(dp, secret: str, user_id: int):

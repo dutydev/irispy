@@ -1,29 +1,64 @@
 from ..types.methods import Method
 from ..types import objects
+from ..utils import logger
 
 from .handler import Handler
 from . import server
+from ._status import LoggerLevel
 
-import logging
+from inspect import iscoroutinefunction
+
 import asyncio
 import typing
-
-
-logger = logging.getLogger(__name__)
+import sys
 
 
 class Dispatcher:
 
-    def __init__(self, secret: str, user_id: int, *, loop: asyncio.AbstractEventLoop = None):
+    def __init__(
+        self,
+        secret: str,
+        user_id: int,
+        debug: typing.Union[str, bool] = True,
+        log_to_path: typing.Union[str, bool] = None,
+        *,
+        loop: asyncio.AbstractEventLoop = None
+    ):
         self.loop = loop if loop else asyncio.get_event_loop()
         self.secret: str = secret
+        self.debug: bool = debug
         self.user_id: int = user_id
         self.handlers: typing.List[Handler] = []
+
+        if isinstance(debug, bool):
+            debug = "INFO" if debug else "ERROR"
+
+        self.logger = LoggerLevel(debug)
+
+        logger.remove()
+        logger.add(
+            sys.stderr,
+            colorize=True,
+            format="<level>[<blue>IrisPY</blue>] {message}</level> <white>[TIME {time:HH:MM:ss}]</white>",
+            filter=self.logger,
+            level=0
+        )
+        logger.level("INFO", color="<white>")
+        logger.level("ERROR", color="<red>")
+        if log_to_path:
+            logger.add(
+                "log_{time}.log" if log_to_path is True else log_to_path,
+                rotation="100 MB",
+            )
+
+        logger.debug("Initialized dispatcher with SECRET: <{}> USER_ID: <{}>".format(
+            secret, user_id
+        ))
 
     def register_event_handler(self, event_type: Method, coro: typing.Callable):
         handler = Handler(coro, event_type)
         self.handlers.append(handler)
-        logging.info("Handler successfully registered!")
+        logger.debug(f"Registered new handler {coro.__name__}")
 
     def event_handler(self, event_type: Method):
         """
@@ -32,6 +67,8 @@ class Dispatcher:
         :return: -> None
         """
         def decorator(coro: typing.Callable):
+            if not iscoroutinefunction(coro):
+                raise Exception("Функция обработчик должна быть корутиной!")
             self.register_event_handler(event_type, coro)
 
         return decorator
@@ -46,8 +83,11 @@ class Dispatcher:
             if handler.event_type.value == _event.method:
                 try:
                     await handler.notify_handler(_event)
+                    logger.info("-> NEW EVENT {} FROM CHAT {}".format(
+                        _event.method, _event.object.chat
+                    ))
                 except Exception as e:
-                    logging.exception(f"Error in handler: {e}")
+                    logger.exception(f"Error in handler: {e}")
 
     async def process_events(self, events: typing.List[dict]):
         for event in events:
@@ -61,6 +101,7 @@ class Dispatcher:
         :return: -> None
         """
         app = server.get_app(self, self.secret, self.user_id)
+        logger.info("Handling successfully started. Press Ctrl+C to stop it")
         server.run_app(app, host, port, path)
 
     @staticmethod
