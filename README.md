@@ -10,6 +10,18 @@
 С помощью установщика pip из GitHub:
 <br/>`pip install https://github.com/zpodushkin/irispy/archive/master.zip --upgrade`
 
+### Кастомизация
+
+<a href="https://github.com/Delgan/loguru"><img alt="downloads" src="https://img.shields.io/static/v1?label=powered%20by&message=loguru&color=orange"></a>
+
+После установки `irispy` рекомендуется сразу же установить дополнительный модуль `loguru`, без него логи не настраиваемы.
+
+Установите `loguru` с помощью команды:
+
+```sh
+pip install loguru
+```
+
 ## Примеры использования
 
 ```python
