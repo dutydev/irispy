@@ -25,13 +25,13 @@ pip install loguru
 ## Примеры использования
 
 ```python
-from irispy import Dispatcher, Method
+from irispy import Dispatcher
 from irispy import objects
 
-dp = Dispatcher(secret="<your_secret>", user_id=0)  # Вместо <your_secret> и 0 подставляем свои значения
+dp = Dispatcher(secret="<your_secret>", user_id=0)
 
 
-@dp.event_handler(Method.SEND_MY_SIGNAL)
+@dp.event.sendMySignal(text=["test", "hello"])
 async def wrapper(event: objects.SendMySignal):
     """ Функция, которая ловит сигнал
     при отправке сообщений: .с; !сигнал ...
@@ -41,7 +41,16 @@ async def wrapper(event: objects.SendMySignal):
     print(event.object)
 
 
-dp.run_app(host="0.0.0.0", port=8080)
+@dp.event.sendSignal(text=["ананас", "test"])
+async def executor(event: objects.SendSignal):
+    print(event.object)
+
+
+@dp.event.bindChat()
+async def bind(event: objects.BindChat):
+    print(event)
+
+dp.run_app(host="0.0.0.0", port=80)
 ```
 
 Больше примеров в папке [/examples](./examples)
@@ -57,6 +66,9 @@ dp.run_app(host="0.0.0.0", port=8080)
     * Первый деплой!
 * 1.0.1
     * Добавление логов и обработка ошибок
+* 1.0.5
+    * Валидация в методах sendSignal и sendMySignal
+    * Изменение структуры хендлеров
 
 ## Contributing
 

@@ -1,12 +1,10 @@
 from ..types.methods import Method
+from ..types.events import Event
 from ..types import objects
 from ..utils import logger
 
-from .handler import Handler
 from . import server
 from ._status import LoggerLevel
-
-from inspect import iscoroutinefunction
 
 import asyncio
 import typing
@@ -28,7 +26,7 @@ class Dispatcher:
         self.secret: str = secret
         self.debug: bool = debug
         self.user_id: int = user_id
-        self.handlers: typing.List[Handler] = []
+        self.event: Event = Event()
 
         if isinstance(debug, bool):
             debug = "INFO" if debug else "ERROR"
@@ -55,31 +53,13 @@ class Dispatcher:
             secret, user_id
         ))
 
-    def register_event_handler(self, event_type: Method, coro: typing.Callable):
-        handler = Handler(coro, event_type)
-        self.handlers.append(handler)
-        logger.debug(f"Registered new handler {coro.__name__}")
-
-    def event_handler(self, event_type: Method):
-        """
-        Регистрирует event_handler в приложении.
-        :param event_type: -> Method
-        :return: -> None
-        """
-        def decorator(coro: typing.Callable):
-            if not iscoroutinefunction(coro):
-                raise Exception("Функция обработчик должна быть корутиной!")
-            self.register_event_handler(event_type, coro)
-
-        return decorator
-
     async def process_event(self, event: dict):
         """ Функция, отвечающая за обработку эвента.
         :param event: -> dict
         :return: -> None
         """
         _event = await self.get_event_type(event)
-        for handler in self.handlers:
+        for handler in self.event.handlers:
             if handler.event_type.value == _event.method:
                 try:
                     await handler.notify_handler(_event)
@@ -89,9 +69,29 @@ class Dispatcher:
                 except Exception as e:
                     logger.exception(f"Error in handler: {e}")
 
+    async def process_self_event(self, event: dict):
+        """ Обработка эвентов: "sendSignal", "SendMySignal".
+        :return:
+        """
+        _event = await self.get_event_type(event)
+        for handler in self.event.event_handlers:
+            if handler.event_type.value == _event.method:
+                if _event.object.value in handler.commands:
+                    try:
+                        await handler.notify_handler(_event)
+                        logger.info(
+                            "-> NEW EVENT {} FROM CHAT {}".format(
+                                _event.method, _event.object.chat
+                            ))
+                    except Exception as e:
+                        logger.exception(f"Error in handler: {e}")
+
     async def process_events(self, events: typing.List[dict]):
         for event in events:
-            self.loop.create_task(self.process_event(event))
+            if event["method"] not in ("sendMySignal", "sendSignal"):
+                self.loop.create_task(self.process_event(event))
+            else:
+                self.loop.create_task(self.process_self_event(event))
 
     def run_app(self, host: str = "0.0.0.0", port: int = 8080, path: str = "/"):
         """
