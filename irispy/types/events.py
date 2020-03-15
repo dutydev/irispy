@@ -13,6 +13,8 @@ class Event:
         self.event_handlers: typing.List[SelfHandler] = []
 
     def __register_event_handler(self, event_type: Method, coro: typing.Callable):
+        if not iscoroutinefunction(coro):
+            raise Exception("Функция обработчик должна быть асинхронной!")
         handler = Handler(coro, event_type)
         self.handlers.append(handler)
         logger.debug(f"Registered new handler {coro.__name__}")
@@ -23,6 +25,8 @@ class Event:
             coro: typing.Callable,
             commands: typing.List[str]
     ):
+        if not iscoroutinefunction(coro):
+            raise Exception("Функция обработчик должна быть асинхронной!")
         handler = SelfHandler(coro, event_type, commands)
         self.event_handlers.append(handler)
         logger.debug(f"Registered new self handler {coro.__name__}")
