@@ -13,13 +13,16 @@
 ### Кастомизация
 
 <a href="https://github.com/Delgan/loguru"><img alt="downloads" src="https://img.shields.io/static/v1?label=powered%20by&message=loguru&color=orange"></a>
+<a href="https://github.com/timoniq/vbml"><img alt="downloads" src="https://img.shields.io/static/v1?label=powered%20by&message=vbml&color=blue"></a>
 
-После установки `irispy` рекомендуется сразу же установить дополнительный модуль `loguru`, без него логи не настраиваемы.
+После установки `irispy` рекомендуется сразу же установить дополнительные модули `loguru` и `vbml`.
+<br/>С ними фреймворк работает лучше и быстрее.
 
-Установите `loguru` с помощью команды:
+Установите `loguru` и `vbml` с помощью команд:
 
 ```sh
 pip install loguru
+pip install vbml
 ```
 
 ## Примеры использования
@@ -41,16 +44,16 @@ async def wrapper(event: objects.SendMySignal):
     print(event.object)
 
 
-@dp.event.sendSignal(text=["ананас", "test"])
-async def executor(event: objects.SendSignal):
-    print(event.object)
+@dp.event.sendSignal(text="скажи <text>")
+async def executor(event: objects.SendSignal, text: str):
+    print(text)
 
 
 @dp.event.bindChat()
 async def bind(event: objects.BindChat):
-    print(event)
+    print(event.object.chat)
 
-dp.run_app(host="0.0.0.0", port=80)
+dp.run_app(host="0.0.0.0", port=8080)
 ```
 
 Больше примеров в папке [/examples](./examples)
@@ -59,6 +62,7 @@ dp.run_app(host="0.0.0.0", port=80)
 
 * [Iris Callback API 2.0 (Статья)](https://vk.com/@iris_cm-api2)
 * [Подробная информация по посадке](https://vk.com/@llordrall-chat-faq)
+* [Язык разметки VBML (Документация)](https://github.com/timoniq/vbml)
 
 ## История релизов
 
@@ -69,6 +73,8 @@ dp.run_app(host="0.0.0.0", port=80)
 * 1.0.5
     * Валидация в методах sendSignal и sendMySignal
     * Изменение структуры хендлеров
+* 1.1
+    * Валидаторы VBML!
 
 ## Contributing
 

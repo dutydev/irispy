@@ -8,5 +8,5 @@ setup(
     license='GPL-3.0',
     author='zpodushkin',
     description='Async and fast api wrapper for IrisCallback API',
-    install_requires=['aiohttp', 'pydantic', 'loguru']
+    install_requires=['aiohttp', 'pydantic', 'loguru', 'vbml']
 )

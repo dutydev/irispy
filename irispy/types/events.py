@@ -23,11 +23,12 @@ class Event:
             self,
             event_type: Method,
             coro: typing.Callable,
-            commands: typing.List[str]
+            commands: typing.List[str],
+            lower: bool
     ):
         if not iscoroutinefunction(coro):
             raise Exception("Функция обработчик должна быть асинхронной!")
-        handler = SelfHandler(coro, event_type, commands)
+        handler = SelfHandler(coro, event_type, commands, lower)
         self.event_handlers.append(handler)
         logger.debug(f"Registered new self handler {coro.__name__}")
 
@@ -109,16 +110,26 @@ class Event:
 
         return decorator
 
-    def sendMySignal(self, text: typing.Union[str, typing.List[str]]):
+    def sendMySignal(self, text: typing.Union[str, typing.List[str]], lower: bool = False):
         def decorator(func):
             commands = text if isinstance(text, list) else [text]
-            self.__register_self_handler(Method.SEND_MY_SIGNAL, func, commands)
+            self.__register_self_handler(
+                event_type=Method.SEND_MY_SIGNAL,
+                coro=func,
+                commands=commands,
+                lower=lower
+            )
 
         return decorator
 
-    def sendSignal(self, text: typing.Union[str, typing.List[str]]):
+    def sendSignal(self, text: typing.Union[str, typing.List[str]], lower: bool = False):
         def decorator(func):
             commands = text if isinstance(text, list) else [text]
-            self.__register_self_handler(Method.SEND_SIGNAL, func, commands)
+            self.__register_self_handler(
+                event_type=Method.SEND_SIGNAL,
+                coro=func,
+                commands=commands,
+                lower=lower
+            )
 
         return decorator

@@ -5,6 +5,7 @@ from ..utils import logger
 
 from . import server
 from ._status import LoggerLevel
+from vbml import Patcher
 
 import asyncio
 import typing
@@ -14,19 +15,20 @@ import sys
 class Dispatcher:
 
     def __init__(
-        self,
-        secret: str,
-        user_id: int,
-        debug: typing.Union[str, bool] = True,
-        log_to_path: typing.Union[str, bool] = None,
-        *,
-        loop: asyncio.AbstractEventLoop = None
+            self,
+            secret: str,
+            user_id: int,
+            debug: typing.Union[str, bool] = True,
+            log_to_path: typing.Union[str, bool] = None,
+            *,
+            loop: asyncio.AbstractEventLoop = None
     ):
         self.loop = loop if loop else asyncio.get_event_loop()
         self.secret: str = secret
         self.debug: bool = debug
         self.user_id: int = user_id
         self.event: Event = Event()
+        self.patcher: Patcher = Patcher()
 
         if isinstance(debug, bool):
             debug = "INFO" if debug else "ERROR"
@@ -76,15 +78,15 @@ class Dispatcher:
         _event = await self.get_event_type(event)
         for handler in self.event.event_handlers:
             if handler.event_type.value == _event.method:
-                if _event.object.value in handler.commands:
-                    try:
-                        await handler.notify_handler(_event)
-                        logger.info(
-                            "-> NEW EVENT {} FROM CHAT {}".format(
-                                _event.method, _event.object.chat
-                            ))
-                    except Exception as e:
-                        logger.exception(f"Error in handler: {e}")
+                try:
+                    await self.validation(handler.handler, _event,
+                                          _event.object.value, handler.patterns)
+                    logger.info(
+                        "-> NEW EVENT {} FROM CHAT {}".format(
+                            _event.method, _event.object.chat
+                        ))
+                except Exception as e:
+                    logger.exception(f"Error in handler: {e}")
 
     async def process_events(self, events: typing.List[dict]):
         for event in events:
@@ -92,6 +94,21 @@ class Dispatcher:
                 self.loop.create_task(self.process_event(event))
             else:
                 self.loop.create_task(self.process_self_event(event))
+
+    async def validation(
+            self,
+            func: typing.Callable,
+            event: Method,
+            text: str,
+            patterns
+    ):
+        kwargs = {}
+        for i in patterns:
+            result = self.patcher.check(text, i)
+            if result is not None:
+                kwargs.update(**result)
+        if kwargs:
+            await func(event, **kwargs)
 
     def run_app(self, host: str = "0.0.0.0", port: int = 8080, path: str = "/"):
         """

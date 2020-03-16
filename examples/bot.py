@@ -6,7 +6,7 @@ import typing
 
 dp = Dispatcher(secret="<your_secret>", user_id=0)
 vk = vk_api.VkApi(token="токен_от_вк")
-chats = {'e45643e': 2000000666}  # Синхронизация чатов с Ирисом
+chats = {}  # Синхронизация чатов с Ирисом
 
 
 async def send_msg(peer_id: int, message: str, attachment: str = ""):
@@ -42,16 +42,17 @@ async def get_chat(date: int) -> typing.Union[None, int]:
         return
 
 
-@dp.event.sendMySignal(text=["test", "hello"])
-async def wrapper(event: objects.SendMySignal):
+@dp.event.sendMySignal(text=["повтори <text:int>"], lower=True)
+async def wrapper(event: objects.SendMySignal, text: int):
     """ Функция, которая ловит сигнал
     при отправке сообщений: .с; !сигнал ...
+    :param text:
     :param event: Объект эвента
     :return:
     """
     await send_msg(
         peer_id=chats[event.object.chat],
-        message="Hello, my brother!"
+        message=f"Повторяю: {text}"
     )
 
 
