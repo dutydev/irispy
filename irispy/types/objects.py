@@ -150,11 +150,13 @@ class ForbiddenLinks(BaseObject):
 
 class SendSignal(BaseObject):
     method: str
+    message: Message
     object: SendSignalObject
 
 
 class SendMySignal(BaseObject):
     method: str
+    message: Message
     object: SendSignalObject
 
 

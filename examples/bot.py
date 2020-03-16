@@ -42,8 +42,8 @@ async def get_chat(date: int) -> typing.Union[None, int]:
         return
 
 
-@dp.event.sendMySignal(text=["повтори <text:int>"], lower=True)
-async def wrapper(event: objects.SendMySignal, text: int):
+@dp.event.sendMySignal(text=["повтори <text>"], lower=True)
+async def wrapper(event: objects.SendMySignal, text: str):
     """ Функция, которая ловит сигнал
     при отправке сообщений: .с; !сигнал ...
     :param text:
@@ -56,18 +56,15 @@ async def wrapper(event: objects.SendMySignal, text: int):
     )
 
 
-@dp.event.sendSignal(text="Я люблю ананасы")
-async def executor(event: objects.SendSignal):
-    await send_msg(
-        peer_id=chats[event.object.chat],
-        message="Вау, я тоже!"
-    )
+@dp.event.sendSignal(text="повтори <text>", lower=True)
+async def executor(event: objects.SendSignal, text: str):
+    print(event, text)
 
 
 @dp.event.bindChat()
 async def bind(event: objects.BindChat):
     if event.object.chat not in chats.keys():
         chats[event.object.chat] = await get_chat(event.message.date)
-        await send_msg(chats[event.object.chat], "Чат привязан!")
+        await send_msg(peer_id=chats[event.object.chat], message="Чат привязан!")
 
 dp.run_app(host="0.0.0.0", port=80)

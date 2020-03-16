@@ -1,6 +1,7 @@
 import os
 import time
 import sys
+import re
 
 
 class Logger:
@@ -28,3 +29,6 @@ def folder_checkup(path, create: bool = True):
         os.mkdir(path)
     return path
 
+
+def sub_string(text: str) -> str:
+    return " ".join(text.split()[1:])

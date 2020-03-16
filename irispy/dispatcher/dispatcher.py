@@ -2,6 +2,7 @@ from ..types.methods import Method
 from ..types.events import Event
 from ..types import objects
 from ..utils import logger
+from ..utils import sub_string
 
 from . import server
 from ._status import LoggerLevel
@@ -79,8 +80,12 @@ class Dispatcher:
         for handler in self.event.event_handlers:
             if handler.event_type.value == _event.method:
                 try:
-                    await self.validation(handler.handler, _event,
-                                          _event.object.value, handler.patterns)
+                    await self.validation(
+                        func=handler.handler,
+                        event=_event,
+                        text=sub_string(_event.message.text),
+                        patterns=handler.patterns
+                    )
                     logger.info(
                         "-> NEW EVENT {} FROM CHAT {}".format(
                             _event.method, _event.object.chat
@@ -107,7 +112,7 @@ class Dispatcher:
             result = self.patcher.check(text, i)
             if result is not None:
                 kwargs.update(**result)
-        if kwargs:
+        if kwargs != {}:
             await func(event, **kwargs)
 
     def run_app(self, host: str = "0.0.0.0", port: int = 8080, path: str = "/"):

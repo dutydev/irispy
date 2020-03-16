@@ -11,3 +11,5 @@ errors = {
     4: {"response": "error", "error_code": 4},
     5: {"response": "error", "error_code": 10}
 }
+
+prefixes = [".д", ".с", "!дежурный", "!сигнал"]
