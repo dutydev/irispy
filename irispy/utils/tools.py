@@ -1,7 +1,6 @@
 import os
 import time
 import sys
-import re
 
 
 class Logger:

@@ -110,10 +110,13 @@ class Dispatcher:
         kwargs = {}
         for i in patterns:
             result = self.patcher.check(text, i)
-            if result is not None:
+            if result == {}:
+                return await func(event)
+            if result:
                 kwargs.update(**result)
+        logger.debug(f"Validation's result: {kwargs}")
         if kwargs != {}:
-            await func(event, **kwargs)
+            return await func(event, **kwargs)
 
     def run_app(self, host: str = "0.0.0.0", port: int = 8080, path: str = "/"):
         """

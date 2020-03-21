@@ -7,7 +7,10 @@
 
 ## Установка
 
-С помощью установщика pip из GitHub:
+1. Новейшая версия:
+<br/>`pip install irispy==1.1`
+
+2. С помощью установщика pip из GitHub:
 <br/>`pip install https://github.com/zpodushkin/irispy/archive/master.zip --upgrade`
 
 ### Кастомизация
@@ -71,10 +74,14 @@ dp.run_app(host="0.0.0.0", port=8080)
 * 1.0.1
     * Добавление логов и обработка ошибок
 * 1.0.5
-    * Валидация в методах sendSignal и sendMySignal
+    * Валидация в методах `sendSignal` и `sendMySignal`
     * Изменение структуры хендлеров
 * 1.1
     * Валидаторы VBML!
+    * Первый и официальный релиз!
+* 1.1.1
+    * Не работали валидаторы без аргументов. Исправлено
+    * Модуль «IrisPY» был загружен на PyPi!
 
 ## Contributing
 

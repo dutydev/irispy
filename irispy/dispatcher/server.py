@@ -26,6 +26,8 @@ class IrisHandler(web.View):
         if not method:
             return web.json_response(data=errors[1])
 
+        logger.debug(f"{event}")
+
         secret = event.get("secret")
         user_id = event.get("user_id")
 
@@ -40,6 +42,7 @@ class IrisHandler(web.View):
         await self.request.app["dp"].process_events([event])
         if method in self._methods:
             return web.Response(text="ok")
+        logger.warning(f"Detected new unknown method: {method}")
         return web.json_response(data=errors[2])
 
 
