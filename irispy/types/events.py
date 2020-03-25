@@ -1,9 +1,11 @@
 import typing
 
+from ..dispatcher.handler import Handler, SelfHandler
+from ..types.exceptions import HandlerError
+from ..utils import logger
+
 from inspect import iscoroutinefunction
 from .methods import Method
-from ..dispatcher.handler import Handler, SelfHandler
-from ..utils import logger
 
 
 class Event:
@@ -14,7 +16,7 @@ class Event:
 
     def __register_event_handler(self, event_type: Method, coro: typing.Callable):
         if not iscoroutinefunction(coro):
-            raise Exception("Функция обработчик должна быть асинхронной!")
+            raise HandlerError("Функция обработчик должна быть асинхронной!")
         handler = Handler(coro, event_type)
         self.handlers.append(handler)
         logger.debug(f"Registered new handler {coro.__name__}")
@@ -27,7 +29,7 @@ class Event:
             lower: bool
     ):
         if not iscoroutinefunction(coro):
-            raise Exception("Функция обработчик должна быть асинхронной!")
+            raise HandlerError("Функция обработчик должна быть асинхронной!")
         handler = SelfHandler(coro, event_type, commands, lower)
         self.event_handlers.append(handler)
         logger.debug(f"Registered new self handler {coro.__name__}")

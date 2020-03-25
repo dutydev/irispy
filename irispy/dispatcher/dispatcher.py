@@ -6,6 +6,8 @@ from ..utils import sub_string
 
 from . import server
 from ._status import LoggerLevel
+
+from vkbottle import User
 from vbml import Patcher
 
 import asyncio
@@ -18,23 +20,29 @@ class Dispatcher:
     def __init__(
             self,
             secret: str,
-            user_id: int,
+            token: str,
+            user_id: typing.Union[str, int],
+            longpoll: bool = False,
             debug: typing.Union[str, bool] = True,
             log_to_path: typing.Union[str, bool] = None,
             *,
             loop: asyncio.AbstractEventLoop = None
     ):
-        self.loop = loop if loop else asyncio.get_event_loop()
-        self.secret: str = secret
-        self.debug: bool = debug
-        self.user_id: int = user_id
-        self.event: Event = Event()
-        self.patcher: Patcher = Patcher()
+        self.__loop = loop if loop else asyncio.get_event_loop()
+        self.__secret: str = secret
+        self.__debug: bool = debug
+        self.__user_id: int = int(user_id)
+        self.__api: User = User(token=token, debug=False)
+        self.__patcher: Patcher = Patcher()
 
         if isinstance(debug, bool):
             debug = "INFO" if debug else "ERROR"
 
+        if longpoll:
+            self.__loop.create_task(self.__api.run())
+
         self.logger = LoggerLevel(debug)
+        self.event: Event = Event()
 
         logger.remove()
         logger.add(
@@ -96,9 +104,9 @@ class Dispatcher:
     async def process_events(self, events: typing.List[dict]):
         for event in events:
             if event["method"] not in ("sendMySignal", "sendSignal"):
-                self.loop.create_task(self.process_event(event))
+                self.__loop.create_task(self.process_event(event))
             else:
-                self.loop.create_task(self.process_self_event(event))
+                self.__loop.create_task(self.process_self_event(event))
 
     async def validation(
             self,
@@ -109,7 +117,7 @@ class Dispatcher:
     ):
         kwargs = {}
         for i in patterns:
-            result = self.patcher.check(text, i)
+            result = self.__patcher.check(text, i)
             if result == {}:
                 return await func(event)
             if result:
@@ -118,6 +126,22 @@ class Dispatcher:
         if kwargs != {}:
             return await func(event, **kwargs)
 
+    @property
+    def api(self):
+        return self.__api.api
+
+    @property
+    def on(self):
+        return self.__api.on
+
+    @property
+    def loop(self):
+        return self.__loop
+
+    @property
+    def eee(self):
+        return "We love you <3"
+
     def run_app(self, host: str = "0.0.0.0", port: int = 8080, path: str = "/"):
         """
         :param host: IP адресс, где будет запущен сервер: Пример: "127.0.0.1"
@@ -125,7 +149,7 @@ class Dispatcher:
         :param path: Путь, куда Ирис будет отсылать POST запросы: Пример "/bot"
         :return: -> None
         """
-        app = server.get_app(self, self.secret, self.user_id)
+        app = server.get_app(self, self.__secret, self.__user_id)
         logger.info("Handling successfully started. Press Ctrl+C to stop it")
         server.run_app(app, host, port, path)
 
