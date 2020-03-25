@@ -119,6 +119,7 @@ class AddUser(BaseObject):
 
 class SubscribeSignals(BaseObject):
     method: str
+    message: Message
     object: SubscribeSignalsObject
 
 
