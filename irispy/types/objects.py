@@ -54,7 +54,7 @@ class IgnoreMessagesObject(BaseModel):
 class PrintBookmarkObject(BaseModel):
     chat: str
     conversation_message_id: int
-    description: int
+    description: str
 
 
 class ForbiddenLinksObject(BaseModel):
