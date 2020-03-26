@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.2"
 
 __author__ = "Daniil Tikhonov"
 
@@ -11,5 +11,3 @@ errors = {
     4: {"response": "error", "error_code": 4},
     5: {"response": "error", "error_code": 10}
 }
-
-prefixes = [".д", ".с", "!дежурный", "!сигнал"]

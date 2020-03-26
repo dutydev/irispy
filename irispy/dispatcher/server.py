@@ -6,11 +6,10 @@ from ..utils import errors
 class IrisHandler(web.View):
 
     _methods = ["ping", "subscribeSignals", "banExpired",
-                "addUser", "deleteMessages", "hireApi",
+                "addUser", "deleteMessages", "bindChat",
                 "deleteMessagesFromUser", "printBookmark",
                 "forbiddenLinks", "sendSignal", "toGroup",
-                "sendMySignal", "banGetReason", "bindChat",
-                "ignoreMessages"]
+                "sendMySignal", "banGetReason", "ignoreMessages"]
 
     async def get(self):
         """ Метод принимающий GET запросы.
@@ -39,10 +38,13 @@ class IrisHandler(web.View):
             logger.warning(f"Got invalid user_id: {user_id}")
             return web.json_response(data=errors[3])
 
+        if method == "hireApi":
+            return web.json_response(data={'response': 'error'})
+
         await self.request.app["dp"].process_events([event])
         if method in self._methods:
             return web.Response(text="ok")
-        logger.warning(f"Detected new unknown method: {method}")
+        logger.warning(f"Detected unknown method: {method}")
         return web.json_response(data=errors[2])
 
 
