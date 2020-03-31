@@ -74,11 +74,14 @@ class Dispatcher:
             if handler.event_type.value == _event.method:
                 try:
                     await handler.notify_handler(_event)
-                    logger.info("-> NEW EVENT {} FROM CHAT {}".format(
-                        _event.method, _event.object.chat
-                    ))
                 except Exception as e:
                     logger.exception(f"Error in handler: {e}")
+        if _event.method != "ping":
+            logger.info(
+                "-> NEW EVENT {} FROM CHAT {}".format(
+                    _event.method,
+                    _event.object.chat
+                ))
 
     async def process_self_event(self, event: dict):
         """ Обработка эвентов: "sendSignal", "SendMySignal".
@@ -94,12 +97,13 @@ class Dispatcher:
                         text=sub_string(_event.message.text),
                         patterns=handler.patterns
                     )
-                    logger.info(
-                        "-> NEW EVENT {} FROM CHAT {}".format(
-                            _event.method, _event.object.chat
-                        ))
                 except Exception as e:
                     logger.exception(f"Error in handler: {e}")
+        logger.info(
+            "-> NEW EVENT {} FROM CHAT {}".format(
+                _event.method,
+                _event.object.chat
+            ))
 
     async def process_events(self, events: typing.List[dict]):
         for event in events:

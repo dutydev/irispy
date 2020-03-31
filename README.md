@@ -17,6 +17,7 @@
 
 <a href="https://github.com/Delgan/loguru"><img alt="downloads" src="https://img.shields.io/static/v1?label=powered%20by&message=loguru&color=orange"></a>
 <a href="https://github.com/timoniq/vbml"><img alt="downloads" src="https://img.shields.io/static/v1?label=powered%20by&message=vbml&color=blue"></a>
+<a href="https://github.com/timoniq/vkbottle"><img alt="downloads" src="https://img.shields.io/static/v1?label=powered%20by&message=vkbottle&color=green"></a>
 
 После установки `irispy` рекомендуется сразу же установить дополнительные модули `loguru` и `vbml`.
 <br/>С ними фреймворк работает лучше и быстрее.
@@ -80,23 +81,9 @@ async def get_chat(date: int) -> typing.Union[None, int]:
         return
 
 
-@dp.event.sendMySignal(text=["повтори <text>"], lower=True)
-async def wrapper(event: objects.SendMySignal, text: str):
-    """ Функция, которая ловит сигнал
-    при отправке сообщений: .с; !сигнал ...
-    :param text:
-    :param event: Объект эвента
-    :return:
-    """
-    await send_msg(
-        peer_id=chats[event.object.chat],
-        message=f"Повторяю: {text}"
-    )
-
-
 @dp.event.sendSignal(text="повтори <text>", lower=True)
 async def executor(event: objects.SendSignal, text: str):
-    print(event, text)
+    await send_msg(peer_id=chats[event.event.object.chat], message=f"Повторяю: {text}")
 
 
 @dp.event.bindChat()
@@ -105,7 +92,7 @@ async def bind(event: objects.BindChat):
         chats[event.object.chat] = await get_chat(event.message.date)
         await send_msg(peer_id=chats[event.object.chat], message="Чат привязан!")
 
-dp.run_app(host="0.0.0.0", port=80)
+dp.run_app()
 ```
 
 Больше примеров в папке [/examples](./examples)
@@ -134,6 +121,9 @@ dp.run_app(host="0.0.0.0", port=80)
 * 1.2
     * Добавлена поддержка VK API
     * Добавлен User LP
+* 1.2.1
+    * Небольшие фиксы в логгере
+    * Добавлен пример для User LP
 
 ## Contributing
 

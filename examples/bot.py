@@ -72,4 +72,4 @@ async def bind(event: objects.BindChat):
         chats[event.object.chat] = await get_chat(event.message.date)
         await send_msg(peer_id=chats[event.object.chat], message="Чат привязан!")
 
-dp.run_app(host="0.0.0.0", port=80)
+dp.run_app()
