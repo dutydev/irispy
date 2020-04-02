@@ -126,7 +126,6 @@ class Dispatcher:
                 return await func(event)
             if result:
                 kwargs.update(**result)
-        logger.debug(f"Validation's result: {kwargs}")
         if kwargs != {}:
             return await func(event, **kwargs)
 
