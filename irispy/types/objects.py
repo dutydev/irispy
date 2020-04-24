@@ -1,5 +1,4 @@
 from .base import BaseModel
-from .methods import Method
 from typing import Any, List
 
 

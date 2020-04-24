@@ -7,8 +7,8 @@ from ..utils import sub_string
 from . import server
 from ._status import LoggerLevel
 
-from vkbottle import User
-from vbml import Patcher
+from vkbottle.user import User
+from vbml import Patcher, Pattern
 
 import asyncio
 import typing
@@ -18,22 +18,33 @@ import sys
 class Dispatcher:
 
     def __init__(
-            self,
-            secret: str,
-            token: str,
-            user_id: typing.Union[str, int],
-            longpoll: bool = False,
-            debug: typing.Union[str, bool] = True,
-            log_to_path: typing.Union[str, bool] = None,
-            *,
-            loop: asyncio.AbstractEventLoop = None
+        self,
+        secret: str,
+        user_id: int = None,
+        login: str = None,
+        password: str = None,
+        tokens: typing.Union[str, list] = None,
+        longpoll: bool = False,
+        mobile: bool = False,
+        debug: typing.Union[str, bool] = True,
+        log_to_path: typing.Union[str, bool] = None,
+        *,
+        loop: asyncio.AbstractEventLoop = None
     ):
+
+        self.secret: str = secret
+        self.user_id: int = user_id
+
+        self._debug: bool = debug
+        self._patcher: Patcher = Patcher()
+
         self.__loop = loop if loop else asyncio.get_event_loop()
-        self.__secret: str = secret
-        self.__debug: bool = debug
-        self.__user_id: int = int(user_id)
-        self.__api: User = User(token=token, debug=False)
-        self.__patcher: Patcher = Patcher()
+        self.__api: User = User(
+            tokens=tokens, login=login, password=password
+        )
+
+        if user_id is None:
+            self.user_id = self.__api.user_id
 
         if isinstance(debug, bool):
             debug = "INFO" if debug else "ERROR"
@@ -50,7 +61,8 @@ class Dispatcher:
             colorize=True,
             format="<level>[<blue>IrisPY</blue>] {message}</level> <white>[TIME {time:HH:MM:ss}]</white>",
             filter=self.logger,
-            level=0
+            level=0,
+            enqueue=mobile is False
         )
         logger.level("INFO", color="<white>")
         logger.level("ERROR", color="<red>")
@@ -60,9 +72,7 @@ class Dispatcher:
                 rotation="100 MB",
             )
 
-        logger.debug("Initialized dispatcher with SECRET: <{}> USER_ID: <{}>".format(
-            secret, user_id
-        ))
+        logger.debug("Initialized dispatcher with SECRET: <{}> USER_ID: <{}>", secret, user_id)
 
     async def process_event(self, event: dict):
         """ Функция, отвечающая за обработку эвента.
@@ -113,22 +123,15 @@ class Dispatcher:
                 self.__loop.create_task(self.process_self_event(event))
 
     async def validation(
-            self,
-            func: typing.Callable,
-            event: Method,
-            text: str,
-            patterns
+        self,
+        func: typing.Callable,
+        event: Method,
+        text: str,
+        patterns: typing.List[Pattern]
     ):
-        kwargs = {}
-        for i in patterns:
-            result = self.__patcher.check(text, i)
-            if result == {}:
-                return await func(event)
-            if result:
-                kwargs.update(**result)
-        logger.debug(f"Validation's result: {kwargs}")
-        if kwargs != {}:
-            return await func(event, **kwargs)
+        for pattern in patterns:
+            if self._patcher.check(text, pattern) is not None:
+                return await func(event, **pattern.dict())
 
     @property
     def api(self):
@@ -153,7 +156,7 @@ class Dispatcher:
         :param path: Путь, куда Ирис будет отсылать POST запросы: Пример "/bot"
         :return: -> None
         """
-        app = server.get_app(self, self.__secret, self.__user_id)
+        app = server.get_app(self, self.secret, self.user_id)
         logger.info("Handling successfully started. Press Ctrl+C to stop it")
         server.run_app(app, host, port, path)
 

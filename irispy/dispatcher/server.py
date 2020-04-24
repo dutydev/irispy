@@ -22,6 +22,7 @@ class IrisHandler(web.View):
     async def post(self):
         event = await self.request.json()
         method = event.get("method")
+        print(self.request.headers)
         if not method:
             return web.json_response(data=errors[1])
 

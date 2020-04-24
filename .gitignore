@@ -12,6 +12,7 @@ build/
 develop-eggs/
 dist/
 downloads/
+examples/bot.py
 eggs/
 .eggs/
 lib/

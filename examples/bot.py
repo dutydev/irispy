@@ -5,12 +5,11 @@ from random import randint
 import typing
 
 dp = Dispatcher(
-    secret="<your_secret>",
+    secret="<your_secret_word>",
     user_id="<your_user_id>",
-    token="<your_vk_token>"  # Получить можно здесь: https://vkhost.github.io/ (Kate Mobile)
+    tokens="<your_vk_token>"
 )
 chats = {}  # Синхронизация чатов с Ирисом
-
 
 async def send_msg(peer_id: int, message: str, attachment: str = "", **kwargs):
     """ Метод для отправки сообщения.
@@ -26,7 +25,6 @@ async def send_msg(peer_id: int, message: str, attachment: str = "", **kwargs):
         random_id=randint(-2e9, 2e9),
         **kwargs
     )
-
 
 async def get_chat(date: int) -> typing.Union[None, int]:
     """ Получение айди чата через
@@ -45,7 +43,6 @@ async def get_chat(date: int) -> typing.Union[None, int]:
     except Exception as e:
         print("Error: ", e)
         return
-
 
 @dp.event.sendMySignal(text=["повтори <text>"], lower=True)
 async def wrapper(event: objects.SendMySignal, text: str):
@@ -72,4 +69,4 @@ async def bind(event: objects.BindChat):
         chats[event.object.chat] = await get_chat(event.message.date)
         await send_msg(peer_id=chats[event.object.chat], message="Чат привязан!")
 
-dp.run_app()
+dp.run_app(port=80)
